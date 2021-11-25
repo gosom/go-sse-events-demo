@@ -1,0 +1,41 @@
+services:
+  redis:
+    image: redis:latest
+    expose:
+      - "6379"
+    networks:
+      - default
+    restart: unless-stopped
+  api:
+    build: . 
+    command: go-sse-events-demo api
+    depends_on:
+      - redis
+    networks:
+      - default
+    environment:
+      - SSE_REDIS_ADDR
+      - SSE_REDIS_CHAN
+      - SSE_SERVER_ADDR
+      - SSE_KEY
+      - SSE_CRT
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./cert:/cert
+    restart: unless-stopped
+  publisher:
+    build: . 
+    command: go-sse-events-demo publish
+    depends_on:
+      - redis
+    networks:
+      - default
+    environment:
+      - SSE_REDIS_ADDR
+      - SSE_REDIS_CHAN
+      - SSE_SERVER_ADDR
+    restart: unless-stopped
+
+networks:
+  default:
